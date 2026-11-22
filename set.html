@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinPulse - Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    button, input, select { font-family: inherit; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; min-height: 100vh; display: flex; justify-content: center; }
+    .app { position: relative; width: 100%; max-width: 448px; min-height: 100vh; background: #fff; padding-bottom: 100px; }
+
+    /* Header */
+    .header { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 16px 20px 13px; background: rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom: 1px solid #f1f5f9; }
+    .back { width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; color: #475569; display: grid; place-items: center; text-decoration: none; font-size: 15px; }
+    .title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 18px; color: #0f172a; letter-spacing: -.4px; }
+
+    .content { padding: 16px 20px; display: flex; flex-direction: column; gap: 18px; }
+    .panel { background: #fff; border: 1px solid #f1f5f9; border-radius: 16px; padding: 17px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 1px rgba(0,0,0,.05); }
+    .row-between { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: #94a3b8; }
+    .sub { font-size: 12px; font-weight: 600; color: #334155; }
+    .hint { font-size: 11px; color: #94a3b8; }
+
+    /* Buttons */
+    .btn { border: none; border-radius: 12px; padding: 11px 16px; font-size: 13px; font-weight: 600; cursor: pointer; background: #4f46e5; color: #fff; box-shadow: 0 10px 15px -3px rgba(79,70,229,.3); }
+    .btn:disabled { opacity: .6; cursor: default; }
+    .btn.ghost { background: #f1f5f9; color: #475569; box-shadow: none; }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row .btn { flex: 1; }
+
+    /* Chips */
+    .chips { display: flex; gap: 8px; }
+    .chip { border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+    .chip.active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+
+    /* Savings goal */
+    .goal-top { display: flex; justify-content: space-between; align-items: flex-end; }
+    .goal-big { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 34px; color: #0f172a; letter-spacing: -.6px; }
+    .goal-big small { font-size: 14px; color: #94a3b8; margin-left: 2px; }
+    .goal-amt { text-align: right; }
+    .goal-amt b { display: block; font-family: 'Outfit', sans-serif; font-size: 16px; color: #4338ca; }
+    input[type=range] { width: 100%; accent-color: #4f46e5; }
+    .num { width: 90px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 14px; outline: none; text-align: right; }
+    .num:focus { background: #fff; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 600; color: #334155; }
+    .input { width: 100%; padding: 11px 12px; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; font-size: 14px; outline: none; }
+    .input:focus { background: #fff; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99,102,241,.12); }
+
+    /* Toggles */
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 600; color: #334155; }
+    .setting-item:last-child { border-bottom: none; }
+    .setting-item small { display: block; font-size: 11px; color: #94a3b8; font-weight: 500; margin-top: 2px; }
+    .switch { position: relative; width: 40px; height: 22px; border-radius: 999px; background: #cbd5e1; border: none; cursor: pointer; transition: background .2s; flex-shrink: 0; }
+    .switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+    .switch.on { background: #4f46e5; }
+    .switch.on::after { transform: translateX(18px); }
+
+    /* Alerts */
+    .alert { font-size: 12px; line-height: 18px; padding: 11px 13px; border-radius: 12px; display: flex; gap: 10px; align-items: flex-start; }
+    .alert.bad { background: #fff1f2; color: #9f1239; border: 1px solid #fecdd3; }
+    .alert.warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    .alert.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .alert-ico { font-size: 14px; line-height: 18px; }
+
+    /* Variation */
+    .kpis { display: flex; gap: 10px; }
+    .kpi { flex: 1; padding: 12px; border-radius: 12px; background: #f8fafc; border: 1px solid #f1f5f9; }
+    .kpi small { display: block; font-size: 11px; color: #94a3b8; font-weight: 600; }
+    .kpi b { font-family: 'Outfit', sans-serif; font-size: 15px; color: #0f172a; }
+    .var-list { display: flex; flex-direction: column; gap: 12px; }
+    .var-card { border: 1px solid #f1f5f9; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .var-top { display: flex; justify-content: space-between; align-items: center; }
+    .var-name { font-weight: 700; font-size: 14px; color: #1e293b; }
+    .badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+    .badge.ok { background: #ecfdf5; color: #047857; }
+    .badge.warn { background: #fff1f2; color: #be123c; }
+    .var-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .var-cell small { display: block; font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .var-cell b { font-size: 13px; color: #0f172a; font-family: 'Outfit', sans-serif; }
+    .chg { display: block; font-size: 10px; font-weight: 700; margin-top: 2px; }
+    .chg.good { color: #059669; }
+    .chg.bad { color: #e11d48; }
+    .track { position: relative; height: 8px; background: #f1f5f9; border-radius: 999px; margin-top: 4px; }
+    .fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f46e5, #a855f7); transition: width .4s; }
+    .mark { position: absolute; top: -4px; bottom: -4px; width: 2px; background: #0f172a; border-radius: 2px; }
+    .track-meta { display: flex; justify-content: space-between; font-size: 10px; color: #94a3b8; font-weight: 600; }
+    .empty { font-size: 12px; color: #94a3b8; padding: 10px 0; text-align: center; }
+
+    /* Bottom nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 448px; z-index: 4; display: flex; justify-content: space-around; align-items: center; padding: 8px 16px; background: rgba(255,255,255,.95); backdrop-filter: blur(16px); border-top: 1px solid rgba(226,232,240,.8); }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 12px; font-size: 10px; font-weight: 500; color: #94a3b8; text-decoration: none; }
+    .nav-btn.active { color: #4f46e5; font-weight: 600; }
+    .nav-btn .ico { font-size: 16px; }
+
+    /* Toast */
+    .toast { position: fixed; top: 16px; left: 50%; transform: translate(-50%, -20px); background: #1e293b; color: #fff; font-size: 14px; font-weight: 600; padding: 12px 16px; border-radius: 16px; opacity: 0; pointer-events: none; transition: all .3s; white-space: nowrap; z-index: 30; max-width: 90%; overflow: hidden; text-overflow: ellipsis; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <a class="back" href="dashboard.html" aria-label="Back">←</a>
+      <div class="title">Settings</div>
+    </header>
+
+    <main class="content">
+
+      <!-- 1. Monthly savings target -->
+      <section class="panel">
+        <div class="row-between">
+          <div>
+            <div class="eyebrow">Monthly Savings Target</div>
+            <div class="sub">Income la irundhu evlo % save pannanum</div>
+          </div>
+        </div>
+
+        <div class="goal-top">
+          <div class="goal-big"><span id="goalOut">--</span></div>
+          <div class="goal-amt">
+            <small class="hint">Indha maasam target</small>
+            <b id="goalAmt">--</b>
+          </div>
+        </div>
+
+        <input type="range" id="goalRange" min="0" max="100" step="1" oninput="syncGoal('range')" />
+
+        <div class="row-between">
+          <span class="hint">0%</span>
+          <div class="row-between" style="gap:8px">
+            <input class="num" type="number" id="goalInput" min="0" max="100" oninput="syncGoal('input')" />
+            <span class="sub">%</span>
+          </div>
+          <span class="hint">100%</span>
+        </div>
+
+        <button class="btn" onclick="saveGoal()">Save target</button>
+      </section>
+
+      <!-- 2. Alerts -->
+      <section class="panel">
+        <div class="eyebrow">Alerts</div>
+
+        <div class="setting-item">
+          <div>Monthly report<small>Maadha summary ketkalam</small></div>
+          <button class="switch" data-key="monthly_report" onclick="this.classList.toggle('on')" aria-label="Monthly report"></button>
+        </div>
+        <div class="setting-item">
+          <div>Savings reminder<small>Target ku kammiyaa irundha alert</small></div>
+          <button class="switch" data-key="savings_reminder" onclick="this.classList.toggle('on')" aria-label="Savings reminder"></button>
+        </div>
+        <div class="setting-item">
+          <div>Expense alert<small>Expense ithana % adhigam aana alert</small></div>
+          <button class="switch" data-key="budget_alerts" onclick="this.classList.toggle('on')" aria-label="Expense alert"></button>
+        </div>
+
+        <div class="field">
+          <label for="expAlert">Expense increase threshold (%)</label>
+          <input class="input" type="number" id="expAlert" min="1" max="500" value="20" />
+          <span class="hint">Indha value browser la save aagum</span>
+        </div>
+
+        <button class="btn" onclick="saveAlerts()">Save alerts</button>
+
+        <div class="eyebrow" style="margin-top:4px">Active alerts</div>
+        <div id="alertList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </section>
+
+      <!-- 3. Current month -->
+      <section class="panel">
+        <div class="row-between">
+          <div>
+            <div class="eyebrow">Current Month</div>
+            <div class="sub">Income, expense, savings</div>
+          </div>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><small>Income</small><b id="currentIncome">--</b></div>
+          <div class="kpi"><small>Expense</small><b id="currentExpense">--</b></div>
+          <div class="kpi"><small>Savings</small><b id="currentSavings">--</b></div>
+        </div>
+
+        <div class="var-list" id="varList"></div>
+      </section>
+
+      <!-- Preferences save -->
+      <section>
+        <button class="btn" style="width:100%" onclick="saveAll()">Save all settings</button>
+      </section>
+
+    </main>
+
+    <nav class="bottom-nav">
+      <a class="nav-btn" href="dashboard.html"><span class="ico">⌂</span>Dashboard</a>
+      <a class="nav-btn" href="trans.html"><span class="ico">≡</span>Transactions</a>
+      <a class="nav-btn" href="ana.html"><span class="ico">◔</span>Analytics</a>
+      <a class="nav-btn active" href="set.html"><span class="ico">⚟</span>Settings</a>
+    </nav>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    /* ================= CONFIG ================= */
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyVQBygHAXT1VRmvFGV7iDzKkNMRcQyW4hyf1Bp7v-p18pqwu3DaTt9sFICcLtA3C88/exec';
+    const ALERT_KEY = 'finpulse-expense-alert-pct';
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    /* ================= HELPERS ================= */
+    const $ = id => document.getElementById(id);
+    const fmt = n => Number(n || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const monthName = ym => `${MONTHS[Number(ym.slice(5)) - 1]} ${ym.slice(0, 4)}`;
+    const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+    const isEnabled = value => value === true || value === 1 || value === '1';
+
+    function toast(msg, ok = true) {
+      const t = $('toast');
+      t.textContent = (ok ? '✓ ' : '✕ ') + msg;
+      t.classList.add('show');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    /* ================= API ================= */
+    async function readApiResponse(res) {
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server returned an invalid response (${res.status}).`);
+      }
+      if (!res.ok) throw new Error(data.error || `Request failed (${res.status}).`);
+      if (data.error) throw new Error(data.error);
+      return data;
+    }
+
+    async function apiGet(action, params = {}) {
+      const qs = new URLSearchParams({ action, ...params }).toString();
+      const res = await fetch(`${API_URL}?${qs}`);
+      return readApiResponse(res);
+    }
+
+    // Apps Script CORS ku text/plain use pannrom
+    async function apiPost(action, body = {}) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, ...body })
+      });
+      return readApiResponse(res);
+    }
+
+    /* ================= STATE ================= */
+    let settings = null;
+    let months = [];      // analytics months (oldest -> latest)
+
+    /* ================= LOAD ================= */
+    async function loadAll() {
+      try {
+        const [s, a] = await Promise.all([
+          apiGet('getSettings'),
+          apiGet('getAnalytics', { months: 2 })
+        ]);
+        settings = s;
+        months = a.months || [];
+        renderGoal();
+        renderToggles();
+        renderAlertInput();
+        renderAlerts();
+        renderVariation();
+      } catch (e) {
+        toast(e.message, false);
+      }
+    }
+
+    function savingsMetrics(month, goal) {
+      const income = Number(month.income) || 0;
+      const expense = Number(month.expense) || 0;
+      const saved = income - expense;
+      const target = income * goal / 100;
+      return {
+        saved,
+        rate: income > 0 ? saved / income * 100 : 0,
+        shortfall: Math.max(0, target - saved),
+        hasIncome: income > 0,
+        onGoal: income > 0 && saved >= target
+      };
+    }
+
+    /* ================= 1. SAVINGS TARGET ================= */
+    function renderGoal() {
+      const g = settings.savings_goal_pct;
+      $('goalRange').value = g;
+      $('goalInput').value = g;
+      updateGoalPreview(g);
+    }
+
+    function syncGoal(from) {
+      const v = clamp(Number(from === 'range' ? $('goalRange').value : $('goalInput').value) || 0, 0, 100);
+      $('goalRange').value = v;
+      $('goalInput').value = v;
+      updateGoalPreview(v);
+    }
+
+    function updateGoalPreview(g) {
+      $('goalOut').textContent = g + '%';
+      const cur = months[months.length - 1];
+      $('goalAmt').textContent = cur ? fmt(cur.income * g / 100) : '--';
+    }
+
+    async function saveGoal() {
+      const g = clamp(Number($('goalInput').value), 0, 100);
+      try {
+        await apiPost('saveSettings', { savings_goal_pct: g });
+        toast('Savings target saved');
+        loadAll();
+      } catch (e) {
+        toast(e.message, false);
+      }
+    }
+
+    /* ================= 2. ALERTS ================= */
+    function renderToggles() {
+      document.querySelectorAll('.switch').forEach(sw => {
+        sw.classList.toggle('on', isEnabled(settings[sw.dataset.key]));
+      });
+    }
+
+    function renderAlertInput() {
+      $('expAlert').value = localStorage.getItem(ALERT_KEY) || 20;
+    }
+
+    function buildAlerts() {
+      const out = [];
+      if (!months.length || !settings) return out;
+
+      const goal = settings.savings_goal_pct;
+      const cur = months[months.length - 1];
+      const prev = months[months.length - 2];
+      const threshold = Number($('expAlert').value) || 20;
+
+      // Savings reminder
+      const metrics = savingsMetrics(cur, goal);
+      if (isEnabled(settings.savings_reminder) && metrics.hasIncome && !metrics.onGoal) {
+        out.push({
+          type: 'warn',
+          icon: '⚠',
+          text: `${monthName(cur.month)} savings ${metrics.rate.toFixed(0)}% (goal ${goal}%). Goal meet panna expenses ${fmt(metrics.shortfall)} reduce pannunga.`
+        });
+      }
+
+      // Expense increase vs last month
+      if (isEnabled(settings.budget_alerts) && prev && prev.expense > 0) {
+        const change = (cur.expense - prev.expense) / prev.expense * 100;
+        if (change >= threshold) {
+          out.push({
+            type: 'bad',
+            icon: '▲',
+            text: `Expense ${change.toFixed(0)}% adhigam (${monthName(prev.month)} vs ${monthName(cur.month)}). Threshold ${threshold}%.`
+          });
+        }
+      }
+
+      // Expense more than income
+      if (isEnabled(settings.budget_alerts) && cur.income > 0 && cur.expense > cur.income) {
+        out.push({
+          type: 'bad',
+          icon: '!',
+          text: `Indha maasam expense (${fmt(cur.expense)}) income ah vida adhigam.`
+        });
+      }
+
+      return out;
+    }
+
+    function renderAlerts() {
+      const list = buildAlerts();
+      $('alertList').innerHTML = list.length
+        ? list.map(a => `
+            <div class="alert ${a.type}">
+              <span class="alert-ico">${a.icon}</span>
+              <span>${esc(a.text)}</span>
+            </div>`).join('')
+        : '<div class="alert ok"><span class="alert-ico">✓</span><span>Ellam sari irukku. Alert illa.</span></div>';
+    }
+
+    async function saveAlerts() {
+      const body = {};
+      document.querySelectorAll('.switch').forEach(sw => {
+        body[sw.dataset.key] = sw.classList.contains('on') ? 1 : 0;
+      });
+      localStorage.setItem(ALERT_KEY, $('expAlert').value || 20);
+      try {
+        await apiPost('saveSettings', body);
+        settings = { ...settings, ...body };
+        renderToggles();
+        toast('Alerts saved');
+        renderAlerts();
+      } catch (e) {
+        toast(e.message, false);
+      }
+    }
+
+    /* ================= 3. CURRENT MONTH ================= */
+    function renderVariation() {
+      if (!months.length) {
+        $('currentIncome').textContent = fmt(0);
+        $('currentExpense').textContent = fmt(0);
+        $('currentSavings').textContent = fmt(0);
+        $('varList').innerHTML = '<div class="empty">Data illa. Transactions add pannunga.</div>';
+        return;
+      }
+
+      const goal = settings.savings_goal_pct;
+      const cur = months[months.length - 1];
+      const prev = months[months.length - 2];
+      const currentMetrics = savingsMetrics(cur, goal);
+      $('currentIncome').textContent = fmt(cur.income);
+      $('currentExpense').textContent = fmt(cur.expense);
+      $('currentSavings').textContent = fmt(currentMetrics.saved);
+
+      const rate = clamp(currentMetrics.rate, 0, 100);
+
+      let chg = '';
+      if (prev && prev.expense > 0) {
+        const c = (cur.expense - prev.expense) / prev.expense * 100;
+        const cls = c > 0 ? 'bad' : 'good';   // expense up = bad
+        chg = `<span class="chg ${cls}">${c > 0 ? '▲' : '▼'} ${Math.abs(c).toFixed(0)}% vs prev</span>`;
+      }
+
+      $('varList').innerHTML = `
+        <div class="var-card">
+          <div class="var-top">
+            <span class="var-name">${monthName(cur.month)}</span>
+            <span class="badge ${currentMetrics.onGoal ? 'ok' : 'warn'}">${!currentMetrics.hasIncome ? 'No income' : currentMetrics.onGoal ? '✓ Goal met' : '✕ Below goal'}</span>
+          </div>
+          <div class="var-grid">
+            <div class="var-cell"><small>Income</small><b>${fmt(cur.income)}</b></div>
+            <div class="var-cell"><small>Expense</small><b>${fmt(cur.expense)}</b>${chg}</div>
+            <div class="var-cell"><small>Saved</small><b>${fmt(currentMetrics.saved)}</b></div>
+          </div>
+          ${currentMetrics.hasIncome && !currentMetrics.onGoal ? `<span class="chg bad">Reduce expenses by ${fmt(currentMetrics.shortfall)} to meet the ${goal}% savings goal.</span>` : ''}
+          <div>
+            <div class="track">
+              <div class="fill" style="width:${rate}%"></div>
+              <div class="mark" style="left:${clamp(goal, 0, 100)}%"></div>
+            </div>
+            <div class="track-meta" style="margin-top:6px">
+              <span>Savings ${currentMetrics.rate.toFixed(0)}%</span>
+              <span>Goal ${goal}%</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* ================= SAVE ALL ================= */
+    async function saveAll() {
+      const body = { savings_goal_pct: clamp(Number($('goalInput').value), 0, 100) };
+      document.querySelectorAll('.switch').forEach(sw => {
+        body[sw.dataset.key] = sw.classList.contains('on') ? 1 : 0;
+      });
+      localStorage.setItem(ALERT_KEY, $('expAlert').value || 20);
+      try {
+        await apiPost('saveSettings', body);
+        toast('All settings saved');
+        loadAll();
+      } catch (e) {
+        toast(e.message, false);
+      }
+    }
+
+    /* ================= INIT ================= */
+    loadAll();
+  </script>
+</body>
+</html>

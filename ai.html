@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>FinPulse AI Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-2: #9333ea;
+      --text: #0f172a;
+      --text-2: #334155;
+      --muted: #94a3b8;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --user-bg: #4f46e5;
+      --red: #e11d48;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    button, textarea { font: inherit; }
+
+    html, body { height: 100%; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 760px;
+      height: 100dvh;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 0 0 1px var(--border);
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .icon-btn {
+      width: 36px; height: 36px; border-radius: 10px;
+      border: none; background: transparent; color: var(--text-2);
+      display: grid; place-items: center; cursor: pointer; text-decoration: none;
+      font-size: 16px; transition: background .15s;
+    }
+    .icon-btn:hover { background: #f1f5f9; }
+    .avatar-ai {
+      width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+      background: linear-gradient(45deg, var(--primary), var(--primary-2));
+      color: #fff; display: grid; place-items: center; font-size: 14px;
+    }
+    .avatar-ai img, .empty-logo img {
+      width: 100%; height: 100%; display: block;
+      object-fit: cover; border-radius: inherit;
+    }
+    .title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 16px; }
+    .subtitle { font-size: 11px; color: var(--muted); }
+    .spacer { flex: 1; }
+    .history-btn {
+      display: flex; align-items: center; gap: 6px;
+      border: 1px solid var(--border); background: #fff; color: var(--text-2);
+      border-radius: 10px; padding: 8px 10px; font-size: 12px; font-weight: 600;
+      cursor: pointer;
+    }
+    .history-count { color: var(--primary); }
+
+    /* ---------- Auto-update history ---------- */
+    .history-backdrop {
+      position: fixed; inset: 0; background: rgba(15,23,42,.35); z-index: 29;
+    }
+    .history-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 30;
+      width: min(360px, 90vw); background: #fff;
+      box-shadow: -12px 0 32px rgba(15,23,42,.16);
+      display: flex; flex-direction: column;
+      animation: slideIn .2s ease;
+    }
+    .history-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px; border-bottom: 1px solid var(--border);
+    }
+    .history-title { font-family: 'Outfit', sans-serif; font-size: 16px; }
+    .history-list { flex: 1; overflow-y: auto; padding: 12px; }
+    .history-item {
+      padding: 12px; border: 1px solid var(--border); border-radius: 12px;
+      margin-bottom: 10px; font-size: 13px; line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+    .history-item-time { color: var(--muted); font-size: 10px; font-weight: 600; margin-bottom: 5px; }
+    .history-empty { padding: 28px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+    @keyframes slideIn { from { transform: translateX(12px); opacity: .7; } to { transform: none; opacity: 1; } }
+
+    /* ---------- Messages ---------- */
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 24px 16px 12px;
+      display: flex; flex-direction: column; gap: 22px;
+    }
+
+    .empty {
+      margin: auto; width: 100%; max-width: 560px;
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      text-align: center; padding: 20px 0;
+    }
+    .empty-logo {
+      width: 56px; height: 56px; border-radius: 18px;
+      background: linear-gradient(45deg, var(--primary), var(--primary-2));
+      color: #fff; display: grid; place-items: center; font-size: 24px;
+      box-shadow: 0 12px 24px -8px rgba(79,70,229,.5);
+    }
+    .empty h2 { font-family: 'Outfit', sans-serif; font-size: 22px; letter-spacing: -.3px; }
+    .empty p { font-size: 13px; color: var(--muted); }
+    .suggest { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .suggest button {
+      text-align: left;
+      border: 1px solid var(--border); background: #fff;
+      border-radius: 14px; padding: 12px 14px;
+      font-size: 13px; color: var(--text-2); cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .suggest button:hover { border-color: #c7d2fe; box-shadow: 0 4px 12px -6px rgba(79,70,229,.3); }
+
+    .row { display: flex; gap: 12px; max-width: 100%; animation: fadeIn .25s ease; }
+    .row.user { justify-content: flex-end; }
+    .avatar-user {
+      width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+      background: #e0e7ff; color: var(--primary);
+      display: grid; place-items: center; font-weight: 700; font-size: 13px;
+    }
+    .body { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 85%; }
+    .row.user .body { align-items: flex-end; }
+
+    .bubble {
+      font-size: 14px; line-height: 1.65; color: var(--text);
+      word-wrap: break-word; overflow-wrap: anywhere;
+    }
+    .row.user .bubble {
+      background: var(--user-bg); color: #fff;
+      padding: 10px 14px; border-radius: 18px 18px 4px 18px;
+    }
+    .row.error .bubble { color: var(--red); }
+
+    .feed-tag { font-size: 10px; font-weight: 600; color: var(--muted); }
+
+    .msg-actions { display: flex; gap: 4px; opacity: 0; transition: opacity .15s; }
+    .row:hover .msg-actions, .row:focus-within .msg-actions { opacity: 1; }
+    .mini {
+      border: none; background: transparent; color: var(--muted);
+      font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 8px; cursor: pointer;
+    }
+    .mini:hover { background: #f1f5f9; color: var(--text-2); }
+
+    .typing { display: flex; gap: 5px; padding: 8px 0; }
+    .typing span {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--muted);
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .typing span:nth-child(2) { animation-delay: .15s; }
+    .typing span:nth-child(3) { animation-delay: .3s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: .35; }
+      40% { transform: translateY(-5px); opacity: 1; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ---------- Composer ---------- */
+    .composer-wrap { padding: 8px 16px 16px; background: #fff; }
+    .composer {
+      max-width: 720px; margin: 0 auto;
+      display: flex; align-items: flex-end; gap: 8px;
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 8px 8px 8px 16px;
+      background: #fff;
+      box-shadow: 0 6px 24px -12px rgba(15,23,42,.15);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .composer:focus-within {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 4px rgba(99,102,241,.12), 0 6px 24px -12px rgba(15,23,42,.15);
+    }
+    textarea {
+      flex: 1; resize: none; border: none; outline: none;
+      background: transparent; color: var(--text);
+      font-size: 14px; line-height: 1.5;
+      padding: 8px 0; max-height: 160px; min-height: 24px;
+    }
+    textarea::placeholder { color: var(--muted); }
+    .send {
+      width: 36px; height: 36px; border-radius: 12px; border: none; flex-shrink: 0;
+      background: var(--primary); color: #fff; font-size: 16px; cursor: pointer;
+      display: grid; place-items: center; transition: transform .1s, opacity .2s;
+    }
+    .send:active { transform: scale(.95); }
+    .send:disabled { opacity: .35; cursor: default; }
+    .foot { text-align: center; font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+    /* ---------- Toast ---------- */
+    .toast {
+      position: fixed; top: 16px; left: 50%;
+      transform: translate(-50%, -16px);
+      background: var(--text); color: #fff;
+      font-size: 13px; font-weight: 600;
+      padding: 10px 14px; border-radius: 12px;
+      opacity: 0; pointer-events: none; transition: all .25s; z-index: 20;
+      max-width: 90%;
+    }
+    .toast.error { background: var(--red); }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 560px) {
+      .app { box-shadow: none; }
+      .suggest { grid-template-columns: 1fr; }
+      .body { max-width: 88%; }
+      .msg-actions { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <a class="icon-btn" href="dashboard.html" aria-label="Back">←</a>
+      <div class="avatar-ai"><img src="finpulse-ai-mark.png" alt="FinPulse AI" /></div>
+      <div>
+        <div class="title">FinPulse AI</div>
+        <div class="subtitle">Unga maasa data vechu pesum</div>
+      </div>
+      <div class="spacer"></div>
+      <button class="history-btn" id="historyBtn" type="button" aria-label="Auto-update history">
+        ◷ History <span class="history-count" id="historyCount"></span>
+      </button>
+      <button class="icon-btn" id="clearBtn" title="New chat" aria-label="New chat">＋</button>
+    </header>
+
+    <main class="messages" id="messages"></main>
+
+    <div class="composer-wrap">
+      <form class="composer" id="composer">
+        <textarea id="input" rows="1" maxlength="1000"
+                  placeholder="Ask FinPulse AI"></textarea>
+        <button class="send" id="sendBtn" type="submit" aria-label="Send">➤</button>
+      </form>
+      <div class="foot">AI numbers unga Google Sheet data la irundhu thaan varum</div>
+    </div>
+
+  </div>
+
+  <div class="history-backdrop" id="historyBackdrop" hidden></div>
+  <aside class="history-panel" id="historyPanel" aria-label="Auto-update history" hidden>
+    <div class="history-head">
+      <div class="history-title">Auto-update history</div>
+      <button class="icon-btn" id="closeHistoryBtn" type="button" aria-label="Close history">×</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </aside>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    /* ================= CONFIG ================= */
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyVQBygHAXT1VRmvFGV7iDzKkNMRcQyW4hyf1Bp7v-p18pqwu3DaTt9sFICcLtA3C88/exec';
+    const API_TOKEN = 'finpulse-8x7Kq2';
+    const STORAGE_KEY = 'finpulse-chat-v2';
+    const FEED_KEY = 'finpulse-feed-last-id';
+    const FEED_HISTORY_KEY = 'finpulse-feed-history-v1';
+    const MAX_STORED = 60;
+    const MAX_FEED_HISTORY = 200;
+    const HISTORY_SENT = 8;
+    const FEED_POLL_MS = 30 * 1000;
+
+    const SUGGESTIONS = [
+      { title: 'Indha maasam spend', text: 'Ithu maasam ennaku evlo spend aagirukku?' },
+      { title: 'Biggest expense', text: 'Ennoda biggest expense category enna?' },
+      { title: 'Savings', text: 'Ithu maasam ennaku evlo save aagum?' },
+      { title: 'Cut panna', text: 'Enga kammi pannalam? Tips kudunga' },
+      { title: 'Compare', text: 'Last month vs this month compare pannu' },
+      { title: 'Balance', text: 'Ippo enga balance evlo irukku?' }
+    ];
+
+    /* ================= STATE ================= */
+    const $ = id => document.getElementById(id);
+    const messagesEl = $('messages');
+    const input = $('input');
+    const sendBtn = $('sendBtn');
+
+    let feedHistory = loadFeedHistory();
+    let messages = loadMessages();
+    let busy = false;
+    let lastFeedId = loadFeedId();
+
+    /* ================= STORAGE ================= */
+    function loadMessages() {
+      let list;
+      try {
+        list = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      } catch (e) {
+        return [];
+      }
+      if (!Array.isArray(list)) return [];
+
+      const oldFeedMessages = list.filter(message => message && message.feed && message.fid != null);
+      if (oldFeedMessages.length) {
+        addFeedHistory(oldFeedMessages);
+        saveFeedHistory();
+      }
+
+      const feedIds = new Set();
+      const chatMessages = list.filter(message => {
+        if (message && message.feed) return false;
+        if (!message || message.fid == null) return true;
+        const id = String(message.fid);
+        if (feedIds.has(id)) return false;
+        feedIds.add(id);
+        return true;
+      }).slice(-MAX_STORED);
+      if (oldFeedMessages.length) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(chatMessages));
+      }
+      return chatMessages;
+    }
+
+    function loadFeedHistory() {
+      try {
+        const list = JSON.parse(localStorage.getItem(FEED_HISTORY_KEY));
+        if (!Array.isArray(list)) return [];
+        const ids = new Set();
+        return list.filter(item => {
+          if (!item || item.fid == null || typeof item.content !== 'string') return false;
+          const id = String(item.fid);
+          if (ids.has(id)) return false;
+          ids.add(id);
+          return true;
+        }).slice(-MAX_FEED_HISTORY);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function addFeedHistory(entries) {
+      const ids = new Set(feedHistory.map(item => String(item.fid)));
+      entries.forEach(item => {
+        const id = item && item.fid != null ? String(item.fid) : '';
+        if (!id || ids.has(id)) return;
+        feedHistory.push({
+          fid: id,
+          role: item.role,
+          content: String(item.content || ''),
+          time: item.time || (item.created_at ? timeFrom(item.created_at) : '')
+        });
+        ids.add(id);
+      });
+      feedHistory = feedHistory.slice(-MAX_FEED_HISTORY);
+    }
+
+    function saveFeedHistory() {
+      localStorage.setItem(FEED_HISTORY_KEY, JSON.stringify(feedHistory));
+      renderHistory();
+    }
+
+    function saveMessages() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-MAX_STORED)));
+    }
+
+    function loadFeedId() {
+      const v = localStorage.getItem(FEED_KEY);
+      if (v === null) return null;
+      const id = Number(v);
+      return Number.isFinite(id) ? id : null;
+    }
+
+    function saveFeedId(id) {
+      if (id == null || !Number.isFinite(Number(id))) {
+        lastFeedId = null;
+        localStorage.removeItem(FEED_KEY);
+        return;
+      }
+      lastFeedId = Number(id);
+      localStorage.setItem(FEED_KEY, String(lastFeedId));
+    }
+
+    /* ================= HELPERS ================= */
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+    }
+
+    // **bold** and new lines. Escape first, then format (safe).
+    function format(text) {
+      return esc(text)
+        .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function toast(msg, ok = true) {
+      const t = $('toast');
+      t.textContent = (ok ? '✓ ' : '✕ ') + msg;
+      t.className = 'toast show' + (ok ? '' : ' error');
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function timeNow() {
+      return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function timeFrom(iso) {
+      const d = new Date(iso);
+      return Number.isFinite(d.getTime())
+        ? d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+        : timeNow();
+    }
+
+    /* ================= API ================= */
+    async function apiGet(action, params = {}) {
+      const qs = new URLSearchParams({ action, token: API_TOKEN, ...params });
+      const res = await fetch(`${API_URL}?${qs}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data;
+    }
+
+    async function askAI(message, history) {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'chat', message, history, token: API_TOKEN })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      return data.reply;
+    }
+
+    /* ================= BACKEND FEED ================= */
+    // Backend la create aana messages (transaction, budget, alerts) fetch pannrom
+    async function pollFeed() {
+      try {
+        const syncHistoryRoles = feedHistory.some(item => !item.role);
+        const params = lastFeedId === null || syncHistoryRoles ? {} : { since: lastFeedId };
+        const d = await apiGet('getChatFeed', params);
+
+        // ChatLog reset aanaa (last_id kammi aanaa) local state ah reset pannrom
+        if (lastFeedId !== null && d.last_id < lastFeedId) {
+          saveFeedId(null);
+          return pollFeed();
+        }
+
+        let historyChanged = false;
+        if (syncHistoryRoles) {
+          const rolesById = new Map((d.messages || []).map(m => [String(m.id), m.role]));
+          feedHistory = feedHistory.filter(item => {
+            const role = rolesById.get(String(item.fid));
+            if (role && item.role !== role) {
+              item.role = role;
+              historyChanged = true;
+            }
+            if (item.role === 'user') {
+              historyChanged = true;
+              return false;
+            }
+            return true;
+          });
+        }
+
+        const newMessages = [];
+        (d.messages || []).forEach(m => {
+          const feedId = m.id == null ? '' : String(m.id);
+          if (!feedId || m.role === 'user' || feedHistory.some(x => String(x.fid) === feedId)) return;
+          newMessages.push({
+            role: m.role,
+            content: m.content,
+            fid: feedId,
+            time: timeFrom(m.created_at)
+          });
+        });
+
+        if (newMessages.length) {
+          addFeedHistory(newMessages);
+          historyChanged = true;
+        }
+        if (historyChanged) {
+          saveFeedHistory();
+        }
+
+        saveFeedId(d.last_id);
+      } catch (e) {
+        console.error('Chat feed error:', e.message);
+        toast('Update load aagala: ' + e.message, false);
+      }
+    }
+
+    function renderHistory() {
+      $('historyCount').textContent = feedHistory.length ? `(${feedHistory.length})` : '';
+      $('historyList').innerHTML = feedHistory.length
+        ? feedHistory.slice().reverse().map(item => `
+            <article class="history-item">
+              <div class="history-item-time">🔔 Auto update${item.time ? ' · ' + esc(item.time) : ''}</div>
+              <div>${format(item.content)}</div>
+            </article>`).join('')
+        : '<div class="history-empty">Auto-updates will appear here.</div>';
+    }
+
+    function setHistoryOpen(open) {
+      $('historyPanel').hidden = !open;
+      $('historyBackdrop').hidden = !open;
+      if (open) $('closeHistoryBtn').focus();
+    }
+
+    /* ================= RENDER ================= */
+    function render(showTyping = false) {
+      if (!messages.length && !showTyping) {
+        messagesEl.innerHTML = `
+          <div class="empty">
+            <div class="empty-logo"><img src="finpulse-ai-mark.png" alt="FinPulse AI" /></div>
+            <div>
+              <h2>Enna help venum?</h2>
+              <p>Unga income, expense, savings pathi kelvi kelunga</p>
+            </div>
+            <div class="suggest">
+              ${SUGGESTIONS.map((s, i) => `
+                <button type="button" data-i="${i}">
+                  <b>${esc(s.title)}</b><br>
+                  <span>${esc(s.text)}</span>
+                </button>`).join('')}
+            </div>
+          </div>`;
+        return;
+      }
+
+      const rows = messages.map((m, i) => {
+        if (m.role === 'user') {
+          return `
+            <div class="row user">
+              <div class="body">
+                <div class="bubble">${format(m.content)}</div>
+              </div>
+              <div class="avatar-user">U</div>
+            </div>`;
+        }
+
+        const tag = m.feed
+          ? `<div class="feed-tag">🔔 Auto update${m.time ? ' · ' + esc(m.time) : ''}</div>`
+          : '';
+
+        const actions = m.error
+          ? `<button class="mini" data-retry="${i}">↻ Retry</button>`
+          : `<button class="mini" data-copy="${i}">Copy</button>`;
+
+        return `
+          <div class="row ${m.error ? 'error' : 'assistant'}">
+            <div class="avatar-ai"><img src="finpulse-ai-mark.png" alt="FinPulse AI" /></div>
+            <div class="body">
+              ${tag}
+              <div class="bubble">${format(m.content)}</div>
+              <div class="msg-actions">${actions}</div>
+            </div>
+          </div>`;
+      });
+
+      if (showTyping) {
+        rows.push(`
+          <div class="row assistant">
+            <div class="avatar-ai"><img src="finpulse-ai-mark.png" alt="FinPulse AI" /></div>
+            <div class="body"><div class="typing"><span></span><span></span><span></span></div></div>
+          </div>`);
+      }
+
+      messagesEl.innerHTML = rows.join('');
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    /* ================= CHAT FLOW ================= */
+    async function send(text) {
+      text = String(text || '').trim().slice(0, 1000);
+      if (!text || busy) return;
+
+      // Successful messages mattum AI ku context ah anupporom
+      const history = messages
+        .filter(m => !m.error)
+        .slice(-HISTORY_SENT)
+        .map(m => ({ role: m.role, content: m.content.slice(0, 400) }));
+
+      messages.push({ role: 'user', content: text, time: timeNow() });
+      saveMessages();
+      input.value = '';
+      resizeInput();
+      setBusy(true);
+      render(true);
+
+      try {
+        const reply = await askAI(text, history);
+        messages.push({
+          role: 'assistant',
+          content: reply || 'Sorry, answer generate aagala.',
+          time: timeNow()
+        });
+      } catch (err) {
+        messages.push({
+          role: 'assistant',
+          content: 'Error: ' + err.message,
+          error: true,
+          retry: text,
+          time: timeNow()
+        });
+      } finally {
+        saveMessages();
+        setBusy(false);
+        render();
+      }
+    }
+
+    function setBusy(v) {
+      busy = v;
+      sendBtn.disabled = v;
+      input.disabled = v;
+      if (!v) input.focus();
+    }
+
+    /* ================= INPUT ================= */
+    function resizeInput() {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 160) + 'px';
+    }
+
+    input.addEventListener('input', resizeInput);
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send(input.value);
+      }
+    });
+
+    $('composer').addEventListener('submit', e => {
+      e.preventDefault();
+      send(input.value);
+    });
+
+    /* ================= CLICKS ================= */
+    messagesEl.addEventListener('click', e => {
+      const sug = e.target.closest('.suggest button');
+      if (sug) return send(SUGGESTIONS[sug.dataset.i].text);
+
+      const copy = e.target.closest('[data-copy]');
+      if (copy) {
+        const msg = messages[Number(copy.dataset.copy)];
+        navigator.clipboard?.writeText(msg.content)
+          .then(() => toast('Copied'))
+          .catch(() => toast('Copy aagala', false));
+        return;
+      }
+
+      const retry = e.target.closest('[data-retry]');
+      if (retry) {
+        const idx = Number(retry.dataset.retry);
+        const failed = messages[idx];
+        messages.splice(idx, 1);                              // error message remove
+        const prev = messages[idx - 1];
+        if (prev && prev.role === 'user') messages.splice(idx - 1, 1); // duplicate user msg remove
+        saveMessages();
+        send(failed.retry);
+      }
+    });
+
+    $('clearBtn').addEventListener('click', () => {
+      if (busy) return;
+      if (messages.length && !confirm('Chat clear pannalama?')) return;
+      messages = [];
+      saveMessages();
+      render();
+    });
+
+    $('historyBtn').addEventListener('click', () => setHistoryOpen(true));
+    $('closeHistoryBtn').addEventListener('click', () => setHistoryOpen(false));
+    $('historyBackdrop').addEventListener('click', () => setHistoryOpen(false));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') setHistoryOpen(false);
+    });
+
+    /* ================= INIT ================= */
+    render();
+    renderHistory();
+    resizeInput();
+    pollFeed();
+    setInterval(pollFeed, FEED_POLL_MS);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) pollFeed();
+    });
+    window.addEventListener('pageshow', event => {
+      if (event.persisted) window.location.reload();
+    });
+  </script>
+</body>
+</html>
